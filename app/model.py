@@ -9,4 +9,4 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API")
 def get_model():
     return ChatGoogleGenerativeAI(model="gemini-2.0-flash",
                                                                       google_api_key=GEMINI_API_KEY,
-                                                                      stream=True)
+                                                                      model_kwargs={"stream": True})
