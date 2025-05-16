@@ -2,6 +2,7 @@
 import streamlit as st
 from app.agent import run_agent_stream
 from prompt.say_hi_to_user import say_hi
+from langchain_core.messages import HumanMessage, AIMessage
 
 # 페이지 기본 설정
 st.set_page_config(page_title="A.M.A.", page_icon="👨🏻‍🎓", layout="wide")
@@ -32,28 +33,28 @@ def run_app():
 
     # chat history 출력
     for message in st.session_state.chat_history:
-        avatar = "🧑🏻" if message['role'] == "user" else "👨🏻‍🎓"
+        avatar = "👩🏻‍🦰" if message['role'] == "user" else "👨🏻‍🎓"
         with st.chat_message(message['role'], avatar=avatar):
             st.markdown(message['content'])
 
     # 사용자 입력
     if user_input:
         st.session_state.chat_history.append({"role": "user", "content": user_input})
-        with st.chat_message("user", avatar="🧑🏻"):
+        with st.chat_message("user", avatar="👩🏻‍🦰"):
             st.markdown(user_input)
 
-        # 대화 기록을 문자열로 변환 (아직 사용 안 함)
-        # previous_chat_history = "\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state.chat_history])
+        # 대화 기록 변환
+        history = []
+        for msg in st.session_state.chat_history:
+            if msg["role"] == "user":
+                history.append(HumanMessage(content=msg["content"]))
+            elif msg["role"] == "assistant":
+                history.append(AIMessage(content=msg["content"]))
 
-        # 추천 생성 스피너
         with st.spinner("Agent가 응답을 생성하는 중..."):
-            assistant_response = run_agent_stream(user_input)
+            assistant_response = run_agent_stream(user_input, history[:-1])  # 마지막 user는 run_agent_stream 안에서 추가됨
 
         # Agent의 응답 출력 및 chat history에 저장
         st.session_state.chat_history.append({"role": "assistant", "content": assistant_response})
         with st.chat_message("assistant", avatar="👨🏻‍🎓"):
             st.markdown(assistant_response)
-
-
-
-        # st.write_stream (https://docs.streamlit.io/develop/api-reference/write-magic/st.write_stream)
