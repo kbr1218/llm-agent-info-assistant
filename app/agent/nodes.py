@@ -7,7 +7,7 @@ from app.agent.model import llm
 ### 검색 노드 함수 정의
 # 노드는 state["search_result"]로 상태를 읽고 새 값을 추가하면 이를 병합해서 상태를 이어감
 def search_node(state):
-    query = state["message"][-1].content
+    query = state["messages"][-1].content
 
     # 도구 실행의 결과 저장
     result = search.run(query)
@@ -20,7 +20,7 @@ def search_node(state):
 
 ### places 노드 함수 정의
 def places_node(state):
-    query = state["messages"[-1]]
+    query = state["messages"][-1]
     result = places.run(query)
     return {
         "messages": [AIMessage(content=result)],
@@ -42,7 +42,7 @@ def response_node(state: AgentState):
     result = llm.invoke(prompt)
 
     return {
-        "message": [AIMessage(content=result.content)]
+        "messages": [AIMessage(content=result.content)]
     }
 
 # INFO: user_input_node를 정의하지 않은 이유?
@@ -53,7 +53,7 @@ def response_node(state: AgentState):
 # LLM을 사용하여 사용자 쿼리의 의도를 분류한 후 검색 후 장소를 검색할지 말지 결정
 def conditional_function_from_search_result(state):
     # 사용자 쿼리
-    query = state["messages"[-1]].content
+    query = state["messages"][-1].content
     search_result = state.get("search_result", "")
 
     # LLM에게 판단 요청 (few-shot prompting)

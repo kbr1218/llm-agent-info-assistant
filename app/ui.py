@@ -15,7 +15,7 @@ def run_app():
     st.title("LangGraph 기반 정보 탐색 & 장소 조회 에이전트🐱‍🏍")
     st.caption("🔗 Github repo (still working on it,,): https://github.com/kbr1218/llm-agent-info-assistant")
     st.divider()
-    st.balloons()
+    # st.balloons()
 
     # 사이드바 추가
     with st.sidebar:
@@ -57,7 +57,11 @@ def run_app():
 
             # LangGraph Agent 실행
             with st.spinner("Agent가 응답을 생성하는 중..."):
-                output: AgentState = agent_excutor.invoke({"messages": messages})
+                output: AgentState = agent_excutor.invoke({
+                    "messages": messages,
+                    "search_result": None,
+                    "places_result": None
+                })
             
             assistant_message = output["messages"][-1].content
             st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})

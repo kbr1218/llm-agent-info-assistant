@@ -14,7 +14,8 @@ graph = StateGraph(AgentState)
 graph.add_node("search", search_node)
 graph.add_node("places", places_node)
 graph.add_node("respond", response_node)
-graph.add_node("router", route_based_on_keyword)
+# graph.add_node("router", route_based_on_keyword)
+graph.add_node("router", lambda state: {})  # 최소 형태의 "더미 노드"
 
 ### 진입점 설정
 # 그래프가 실행될 때마다 작업을 시작할 위치
@@ -28,6 +29,7 @@ graph.add_conditional_edges(
     "router",
     route_based_on_keyword,    # search 또는 places 중 선택
     path_map={
+        # "조건부 함수의 반환값": "노드 이름" >> 으로 구성
         "search": "search",
         "places": "places"
     }
@@ -39,7 +41,7 @@ graph.add_conditional_edges(
     conditional_function_from_search_result,
     path_map={
         "places": "places",
-        "none": "respond"
+        "respond": "respond"
     }
 )
 
