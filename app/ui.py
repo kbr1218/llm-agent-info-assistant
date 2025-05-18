@@ -5,7 +5,7 @@ from prompt.say_hi_to_user import say_hi
 from langchain_core.messages import HumanMessage, AIMessage
 
 # 페이지 기본 설정
-st.set_page_config(page_title="A.M.A.", page_icon="👨🏻‍🎓", layout="wide")
+st.set_page_config(page_title="sample", page_icon="👨🏻‍🎓", layout="wide")
 
 def run_app():
     st.title("실시간 정보 검색 및 장소 탐색을 위한 AI Agent🐱‍🏍")
