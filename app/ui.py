@@ -31,32 +31,30 @@ def run_app():
     # 메시지 입력
     user_input = st.chat_input(placeholder="질문을 입력하세요. ", max_chars=150)
 
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        # chat history 출력
-        for message in st.session_state.chat_history:
-            avatar = "👩🏻‍🦰" if message['role'] == "user" else "👨🏻‍🎓"
-            with st.chat_message(message['role'], avatar=avatar):
-                st.markdown(message['content'])
+    # chat history 출력
+    for message in st.session_state.chat_history:
+        avatar = "👩🏻‍🦰" if message['role'] == "user" else "👨🏻‍🎓"
+        with st.chat_message(message['role'], avatar=avatar):
+            st.markdown(message['content'])
 
-        # 사용자 입력
-        if user_input:
-            st.session_state.chat_history.append({"role": "user", "content": user_input})
-            with st.chat_message("user", avatar="👩🏻‍🦰"):
-                st.markdown(user_input)
+    # 사용자 입력
+    if user_input:
+        st.session_state.chat_history.append({"role": "user", "content": user_input})
+        with st.chat_message("user", avatar="👩🏻‍🦰"):
+            st.markdown(user_input)
 
-            # 대화 기록 변환
-            history = []
-            for msg in st.session_state.chat_history:
-                if msg["role"] == "user":
-                    history.append(HumanMessage(content=msg["content"]))
-                elif msg["role"] == "assistant":
-                    history.append(AIMessage(content=msg["content"]))
+        # 대화 기록 변환
+        history = []
+        for msg in st.session_state.chat_history:
+            if msg["role"] == "user":
+                history.append(HumanMessage(content=msg["content"]))
+            elif msg["role"] == "assistant":
+                history.append(AIMessage(content=msg["content"]))
 
-            with st.spinner("Agent가 응답을 생성하는 중..."):
-                assistant_response = run_agent_stream(user_input, history[:-1])  # 마지막 user는 run_agent_stream 안에서 추가됨
+        with st.spinner("Agent가 응답을 생성하는 중..."):
+            assistant_response = run_agent_stream(user_input, history[:-1])  # 마지막 user는 run_agent_stream 안에서 추가됨
 
-            # Agent의 응답 출력 및 chat history에 저장
-            st.session_state.chat_history.append({"role": "assistant", "content": assistant_response})
-            with st.chat_message("assistant", avatar="👨🏻‍🎓"):
-                st.markdown(assistant_response)
+        # Agent의 응답 출력 및 chat history에 저장
+        st.session_state.chat_history.append({"role": "assistant", "content": assistant_response})
+        with st.chat_message("assistant", avatar="👨🏻‍🎓"):
+            st.markdown(assistant_response)
