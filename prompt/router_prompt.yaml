@@ -24,6 +24,6 @@ template: |
 
   이제 다음 질문에 대해 분류 결과만 반환하세요:
 
-  질문: "{{query}}"
+  질문: "{query}"
 
   {format_instruction}

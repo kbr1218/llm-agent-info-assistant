@@ -15,12 +15,14 @@ parser = StructuredOutputParser.from_response_schemas(response_schemas)
 
 # 프롬프트 템플릿
 router_template = load_template_from_yaml("prompt/router_prompt.yaml")
-router_prompt = ChatPromptTemplate.from_template(router_template,
-                                                 partial_variables={'format_instruction': parser.get_format_instructions()})
+router_prompt = ChatPromptTemplate.from_template(router_template)
 
 def route_based_on_keyword(state):
     query = state["messages"][-1].content
-    prompt = router_prompt.format(query=query)
+    prompt = router_prompt.format(
+        query=query,
+        format_instruction= parser.get_format_instructions()
+    )
     response = llm.invoke(prompt)
     parsed = parser.parse(response.content)
     return parsed["route"]
