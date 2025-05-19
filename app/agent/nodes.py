@@ -20,7 +20,7 @@ def search_node(state):
 
 ### places 노드 함수 정의
 def places_node(state):
-    query = state["messages"][-1]
+    query = state["messages"][-1].content
     result = places.run(query)
     return {
         "messages": [AIMessage(content=result)],
@@ -72,7 +72,7 @@ A: respond
 Q: "{query}"
 검색 결과: "{search_result}"
 
-위 질문은 어떤 분류에 해당하나요? ("places" 또는 "respond" 중 하나만 출력하세요.)
+사용자의 질문에 대해 추가적인 장소(주소) 정보를 찾아야 한다면 "places", 검색 결과로 충분히 대답할 수 있다면 "respond"를 대답하세요. ("places" 또는 "respond" 중 하나만 출력하세요.)
 """
     response  = llm.invoke(prompt)
     route = response.content.strip().lower()
