@@ -31,7 +31,8 @@ graph.add_conditional_edges(
     path_map={
         # "조건부 함수의 반환값": "노드 이름" >> 으로 구성
         "search": "search",
-        "places": "places"
+        "places": "places",
+        "respond": "respond"
     }
 )
 
@@ -48,10 +49,8 @@ graph.add_conditional_edges(
 ### 후속 처리
 graph.add_edge("places", "respond")
 
-### 끝지점 설정
-# 그래프 흐름의 종료를 나타냄
+### 끝지점 설정: 그래프 흐름의 종료를 나타냄
 graph.add_edge("respond", END)
-
 
 ### 컴파일된 agent 반환
 agent_excutor = graph.compile()

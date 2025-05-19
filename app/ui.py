@@ -3,7 +3,7 @@ import streamlit as st
 from langchain_core.messages import HumanMessage, AIMessage
 from typing import List
 from prompt.say_hi_to_user import say_hi
-from app.agent.graph import agent_excutor, graph
+from app.agent.graph import agent_excutor
 from app.agent.state import AgentState
 
 def run_app():
