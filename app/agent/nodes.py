@@ -3,6 +3,7 @@ from app.tools import search, places
 from langchain_core.messages import AIMessage
 from app.agent.state import AgentState
 from app.agent.model import llm
+from app.agent.conditional_edge import conditional_from_search_prompt, conditional_from_search_parser
 
 ### 검색 노드 함수 정의
 # 노드는 state["search_result"]로 상태를 읽고 새 값을 추가하면 이를 병합해서 상태를 이어감
@@ -56,28 +57,12 @@ def conditional_function_from_search_result(state):
     query = state["messages"][-1].content
     search_result = state.get("search_result", "")
 
-    # LLM에게 판단 요청 (few-shot prompting)
-    # TODO: 이것도 확실히 한 단어로만 대답하도록 structured output parser 사용하기
-    # TODO: prompt 파일로 분리
-    prompt = f"""
-당신은 질문을 분석해 장소 주소가 필요한 질문인지 아닌지를 판단하는 역할을 합니다.
-
-예시:
-Q: "테일러 스위프트가 마지막으로 공연한 장소는 어딘가요?"
-A: places
-
-Q: "테일러 스위프트가 최근에 발표한 앨범은 무엇인가요?"
-A: respond
-
-Q: "{query}"
-검색 결과: "{search_result}"
-
-사용자의 질문에 대해 추가적인 장소(주소) 정보를 찾아야 한다면 "places", 검색 결과로 충분히 대답할 수 있다면 "respond"를 대답하세요. ("places" 또는 "respond" 중 하나만 출력하세요.)
-"""
+    # formateed prompt 생성 및 LLM 호출
+    prompt = conditional_from_search_prompt.format(
+        query=query,
+        search_result=search_result,
+        format_instructions = conditional_from_search_parser.get_format_instructions()
+    )
     response  = llm.invoke(prompt)
-    route = response.content.strip().lower()
-
-    # 응답 결과 처리
-    if route in {"places", "respond"}:
-        return route
-    return "respond"
+    parsed = conditional_from_search_parser.parse(response.content)
+    return parsed["route"]
