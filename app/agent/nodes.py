@@ -2,8 +2,13 @@
 from app.tools import search, places
 from langchain_core.messages import AIMessage
 from app.agent.state import AgentState
+from langchain.prompts import ChatPromptTemplate, PromptTemplate
 from app.agent.model import llm
 from app.agent.conditional_edge import conditional_from_search_prompt, conditional_from_search_parser
+from setup import load_template_from_yaml
+
+response_template = load_template_from_yaml("prompt/respond_prompt.yaml")
+response_prompt = PromptTemplate(template=response_template, input_variables=["query", "context"], template_format="jinja2")
 
 ### 검색 노드 함수 정의
 # 노드는 state["search_result"]로 상태를 읽고 새 값을 추가하면 이를 병합해서 상태를 이어감
@@ -32,18 +37,18 @@ def places_node(state):
 # REVIEW: 명시적으로 AgentState 타입을 지정한 이유? 코드 가독성 향상, 타입 검사 도구
 def response_node(state: AgentState):
     # 검색 결과 선택
-    context = state.get("places_result") or state.get("search_result") or "정보가 없습니다"
+    context = state.get("places_result") or state.get("search_result") or ""
     query = state["messages"][-1].content
 
-    # 응답 생성
-    # TODO: 프롬프트 재작성 및 구조화된 출력으로 변경 (나중에 주소 형식 JSON으로 받아서 시각화)
-    prompt = f"""사용자의 질문: {query}. \n
-    다음 정보를 바탕으로 한국어로 응답을 생성하세요:\n\n{context}"""
-    # TODO: streamlit에서 입력하도록 변경
-    result = llm.invoke(prompt)
+    # 최종 응답을 생성하기 위한 프롬프트
+    prompt = response_prompt.format(
+        query=query,
+        context=context
+    )
+    response = llm.invoke(prompt)
 
     return {
-        "messages": [AIMessage(content=result.content)]
+        "messages": [AIMessage(content=response.content)]
     }
 
 # INFO: user_input_node를 정의하지 않은 이유?
