@@ -4,7 +4,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 from typing import List
 from app.agent.graph import agent_excutor
 from app.agent.state import AgentState
-from setup import load_template_from_yaml 
+from app.functions import load_template_from_yaml 
 
 say_hi = load_template_from_yaml("prompt/say_hi_to_user.yaml")
 

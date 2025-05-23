@@ -2,7 +2,7 @@
 from app.agent.model import llm
 from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 from langchain.prompts import ChatPromptTemplate
-from setup import load_template_from_yaml 
+from app.functions import load_template_from_yaml 
 
 # 구조화된 응답 스키마 정의 (places || respond)
 response_schemas = [

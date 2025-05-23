@@ -1,7 +1,8 @@
-# respond_prompt.yaml
+# respond_prompt_with_context.yaml
 template: |
   사용자가 다음과 같이 메시지을 보냈습니다.
   사용자의 입력: {query}
 
+  ---
   {context}
   다음 정보를 바탕으로 사용자의 입력에 대해 자연스럽고 친절하게 답변하세요.

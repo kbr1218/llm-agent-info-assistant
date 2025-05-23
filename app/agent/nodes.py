@@ -2,10 +2,10 @@
 from app.tools import search, places
 from langchain_core.messages import AIMessage
 from app.agent.state import AgentState
-from langchain.prompts import ChatPromptTemplate, PromptTemplate
+from langchain.prompts import ChatPromptTemplate
 from app.agent.model import llm
 from app.agent.conditional_edge import conditional_from_search_prompt, conditional_from_search_parser
-from setup import load_template_from_yaml
+from app.functions import load_template_from_yaml, get_last_user_query
 
 response_template_with_context = load_template_from_yaml("prompt/respond_prompt_with_context.yaml")
 response_template_without_context = load_template_from_yaml("prompt/respond_prompt_without_context.yaml")
@@ -41,7 +41,10 @@ def places_node(state):
 def response_node(state: AgentState):
     # 검색 결과 선택
     context = state.get("places_result") or state.get("search_result") or ""
-    query = state["messages"][-1].content
+    query = get_last_user_query(state["messages"])
+
+    print("QUERY:", query)
+    print("CONTEXT:", context)
 
     # 최종 응답을 생성하기 위한 프롬프트
     if context:
