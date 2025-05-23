@@ -7,9 +7,9 @@ from app.agent.model import llm
 from app.agent.conditional_edge import conditional_from_search_prompt, conditional_from_search_parser
 from app.functions import load_template_from_yaml, get_last_user_query
 
-response_template_with_context = load_template_from_yaml("prompt/respond_prompt_with_context.yaml")
-response_template_without_context = load_template_from_yaml("prompt/respond_prompt_without_context.yaml")
-refine_place_query_template = load_template_from_yaml("prompt/refine_place_query_prompt.yaml")
+response_template_with_context = load_template_from_yaml("prompt/respond_with_context.yaml")
+response_template_without_context = load_template_from_yaml("prompt/respond_without_context.yaml")
+refine_place_query_template = load_template_from_yaml("prompt/refine_place_query.yaml")
 
 response_prompt_with_context = ChatPromptTemplate.from_template(template=response_template_with_context)
 response_prompt_without_context = ChatPromptTemplate.from_template(template=response_template_without_context)

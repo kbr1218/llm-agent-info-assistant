@@ -14,7 +14,7 @@ response_schemas = [
 parser = StructuredOutputParser.from_response_schemas(response_schemas)
 
 # 프롬프트 템플릿
-router_template = load_template_from_yaml("prompt/router_prompt.yaml")
+router_template = load_template_from_yaml("prompt/router.yaml")
 router_prompt = ChatPromptTemplate.from_template(router_template)
 
 def route_based_on_keyword(state):
