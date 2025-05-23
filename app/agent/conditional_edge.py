@@ -1,5 +1,4 @@
 # conditional_edge.py
-from app.agent.model import llm
 from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 from langchain.prompts import ChatPromptTemplate
 from app.functions import load_template_from_yaml 
@@ -8,7 +7,7 @@ from app.functions import load_template_from_yaml
 response_schemas = [
     ResponseSchema(
         name = "route",
-        description='"places" 또는 "respond" 중 하나로만 응답하세요.'
+        description='"place_query_refiner" 또는 "respond" 중 하나로만 응답하세요.'
     )
 ]
 conditional_from_search_parser = StructuredOutputParser.from_response_schemas(response_schemas)

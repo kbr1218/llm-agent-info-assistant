@@ -1,7 +1,7 @@
 # graph.py
 from langgraph.graph import StateGraph, END
 from app.agent.state import AgentState
-from app.agent.nodes import search_node, places_node, response_node, conditional_function_from_search_result, place_query_refiner_node
+from app.agent.nodes import search_node, places_node, response_node, conditional_function_from_search_result, place_query_refiner_node, search_query_refiner_node
 from app.agent.router import route_based_on_keyword
 
 ### 그래프 정의
@@ -15,6 +15,7 @@ graph.add_node("search", search_node)
 graph.add_node("places", places_node)
 graph.add_node("respond", response_node)
 graph.add_node("place_query_refiner", place_query_refiner_node)
+graph.add_node("search_query_refiner", search_query_refiner_node)
 graph.add_node("router", lambda state: {})  # 최소 형태의 "더미 노드"
 
 ### 진입점 설정
@@ -30,7 +31,7 @@ graph.add_conditional_edges(
     route_based_on_keyword,    # search 또는 places 중 선택
     path_map={
         # "조건부 함수의 반환값": "노드 이름" >> 으로 구성
-        "search": "search",
+        "search_query_refiner": "search_query_refiner",
         "place_query_refiner": "place_query_refiner",
         "respond": "respond"
     }
@@ -47,6 +48,7 @@ graph.add_conditional_edges(
 )
 
 ### 후속 처리
+graph.add_edge("search_query_refiner", "search")
 graph.add_edge("place_query_refiner", "places")
 graph.add_edge("places", "respond")
 

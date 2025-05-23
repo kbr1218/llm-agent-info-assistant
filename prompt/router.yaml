@@ -2,16 +2,16 @@
 template: |
   당신은 사용자 질문을 분석하여 아래 기준 중 하나를 선택합니다:
 
-  - "search": 답변을 위해 인터넷 검색이 필요할 때 (검색과 장소가 모두 필요해도 먼저 search 선택)
+  - "search_query_refiner": 답변을 위해 인터넷 검색이 필요할 때 (검색과 장소가 모두 필요해도 먼저 search_query_refiner 선택)
   - "place_query_refiner": 장소/주소 관련 질문으로 검색 없이 장소만 알면 될 때
   - "respond": 단순 대화, 또는 검색 없이 바로 답변할 수 있는 질문
 
   예시:
   Q: "테일러 스위프트가 마지막으로 공연한 장소는 어딘가요?"
-  A: search
+  A: search_query_refiner
 
   Q: "오늘 서울시 날씨는?"
-  A: search
+  A: search_query_refiner
 
   Q: "서울의 롯데타워 주소가 뭐야?"
   A: place_query_refiner

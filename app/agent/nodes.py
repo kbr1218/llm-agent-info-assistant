@@ -10,15 +10,28 @@ from app.functions import load_template_from_yaml, get_last_user_query
 response_template_with_context = load_template_from_yaml("prompt/respond_with_context.yaml")
 response_template_without_context = load_template_from_yaml("prompt/respond_without_context.yaml")
 refine_place_query_template = load_template_from_yaml("prompt/refine_place_query.yaml")
+refine_search_query_template = load_template_from_yaml("prompt/refine_search_query.yaml")
 
 response_prompt_with_context = ChatPromptTemplate.from_template(template=response_template_with_context)
 response_prompt_without_context = ChatPromptTemplate.from_template(template=response_template_without_context)
 refine_place_query_prompt = ChatPromptTemplate.from_template(template=refine_place_query_template)
+refine_search_query_prompt = ChatPromptTemplate.from_template(template=refine_search_query_template)
+
+### SerpAPI를 위한 검색어 전처리 노드
+def search_query_refiner_node(state):
+    original_query = state["messages"][-1].content
+    prompt = refine_search_query_prompt.format(query=original_query)
+    refined_query = llm.invoke(prompt).content.strip()
+
+    return {
+        "messages": [AIMessage(content=f"[검색용 보정 쿼리]\n{refined_query}")],
+        "refined_place_query": refined_query
+    }
 
 ### 검색 노드 함수 정의
 # 노드는 state["search_result"]로 상태를 읽고 새 값을 추가하면 이를 병합해서 상태를 이어감
 def search_node(state):
-    query = state["messages"][-1].content
+    query = state.get("refined_search_query", state["messages"][-1].content)
 
     # 도구 실행의 결과 저장
     result = search.run(query)
