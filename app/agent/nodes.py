@@ -7,8 +7,11 @@ from app.agent.model import llm
 from app.agent.conditional_edge import conditional_from_search_prompt, conditional_from_search_parser
 from setup import load_template_from_yaml
 
-response_template = load_template_from_yaml("prompt/respond_prompt.yaml")
-response_prompt = PromptTemplate(template=response_template, input_variables=["query", "context"], template_format="jinja2")
+response_template_with_context = load_template_from_yaml("prompt/respond_prompt_with_context.yaml")
+response_template_without_context = load_template_from_yaml("prompt/respond_prompt_without_context.yaml")
+
+response_prompt_with_context = ChatPromptTemplate.from_template(template=response_template_with_context)
+response_prompt_without_context = ChatPromptTemplate.from_template(template=response_template_without_context)
 
 ### 검색 노드 함수 정의
 # 노드는 state["search_result"]로 상태를 읽고 새 값을 추가하면 이를 병합해서 상태를 이어감
@@ -41,10 +44,10 @@ def response_node(state: AgentState):
     query = state["messages"][-1].content
 
     # 최종 응답을 생성하기 위한 프롬프트
-    prompt = response_prompt.format(
-        query=query,
-        context=context
-    )
+    if context:
+        prompt = response_prompt_with_context.format(query=query, context=context)
+    else:
+        prompt = response_prompt_without_context.format(query=query)
     response = llm.invoke(prompt)
 
     return {
@@ -62,7 +65,7 @@ def conditional_function_from_search_result(state):
     query = state["messages"][-1].content
     search_result = state.get("search_result", "")
 
-    # formateed prompt 생성 및 LLM 호출
+    # formated prompt 생성 및 LLM 호출
     prompt = conditional_from_search_prompt.format(
         query=query,
         search_result=search_result,
