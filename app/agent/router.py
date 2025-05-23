@@ -8,7 +8,7 @@ from app.functions import load_template_from_yaml
 response_schemas = [
     ResponseSchema(
         name="route",
-        description='"search", "places", "respond" 중 하나로만 응답하세요.'
+        description='"search", "place_query_refiner", "respond" 중 하나로만 응답하세요.'
     )
 ]
 parser = StructuredOutputParser.from_response_schemas(response_schemas)

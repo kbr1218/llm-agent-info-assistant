@@ -9,9 +9,11 @@ from app.functions import load_template_from_yaml, get_last_user_query
 
 response_template_with_context = load_template_from_yaml("prompt/respond_prompt_with_context.yaml")
 response_template_without_context = load_template_from_yaml("prompt/respond_prompt_without_context.yaml")
+refine_place_query_template = load_template_from_yaml("prompt/refine_place_query_prompt.yaml")
 
 response_prompt_with_context = ChatPromptTemplate.from_template(template=response_template_with_context)
 response_prompt_without_context = ChatPromptTemplate.from_template(template=response_template_without_context)
+refine_place_query_prompt = ChatPromptTemplate.from_template(template=refine_place_query_template)
 
 ### 검색 노드 함수 정의
 # 노드는 state["search_result"]로 상태를 읽고 새 값을 추가하면 이를 병합해서 상태를 이어감
@@ -27,9 +29,20 @@ def search_node(state):
         "search_result": result
     }
 
+### Google Places API를 위한 검색어 전처리 노드
+def place_query_refiner_node(state):
+    original_query = state["messages"][-1].content
+    prompt = refine_place_query_prompt.format(query=original_query)
+    refined_query = llm.invoke(prompt).content.strip()
+
+    return {
+        "messages": [AIMessage(content=f"[장소 검색용 보정 쿼리]\n{refined_query}")],
+        "refined_place_query": refined_query
+    }
+
 ### places 노드 함수 정의
 def places_node(state):
-    query = state["messages"][-1].content
+    query = state.get("refined_place_query", state["messages"][-1].content)
     result = places.run(query)
     return {
         "messages": [AIMessage(content=result)],
@@ -42,9 +55,6 @@ def response_node(state: AgentState):
     # 검색 결과 선택
     context = state.get("places_result") or state.get("search_result") or ""
     query = get_last_user_query(state["messages"])
-
-    print("QUERY:", query)
-    print("CONTEXT:", context)
 
     # 최종 응답을 생성하기 위한 프롬프트
     if context:

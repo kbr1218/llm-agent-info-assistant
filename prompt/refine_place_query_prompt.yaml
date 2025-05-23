@@ -1,0 +1,14 @@
+# refine_place_query_prompt.yaml
+template: |
+  다음 사용자 입력은 장소의 주소를 묻고 있습니다.
+  Google Places API에서 정확한 결과를 얻기 위해 적절한 장소명, 장소 유형, 지역 정보를 포함한 query로 보정해주세요.
+
+  사용자 입력: {query}
+
+  [출력 형식 예시]
+  - Empire State Building, New York
+  - Sofi Stadium, Inglewood, California
+  - 서울 고속버스터미널
+  - Tokyo Tower, Minato City, Tokyo
+
+  보정된 검색어:
