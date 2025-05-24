@@ -1,6 +1,6 @@
 # nodes.py
 from app.tools import search, places
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, HumanMessage
 from app.agent.state import AgentState
 from langchain.prompts import ChatPromptTemplate
 from app.agent.model import llm
@@ -69,15 +69,36 @@ def places_node(state):
 ### response 노드 함수 정의
 # REVIEW: 명시적으로 AgentState 타입을 지정한 이유? 코드 가독성 향상, 타입 검사 도구
 def response_node(state: AgentState):
-    # 검색 결과 선택
-    context = state.get("places_result") or state.get("search_result") or ""
+    # 검색/주소 결과
+    search_result = state.get("search_result", "")
+    places_result = state.get("places_result", "")
+    
     query = get_last_user_query(state["messages"])
+    # 대화 이력
+    history = "\n".join(
+        m.content for m in state["messages"]
+        if isinstance(m, HumanMessage) and m.content != query
+    )
+
+    # context 구성: 정보 + 맥락 포함
+    context = ""
+    if places_result:
+        context += f"[주소 검색 결과]\n{places_result}\n"
+    if search_result:
+        context += f"[검색 결과 요약]\n{search_result}\n"
+    if history:
+        context += f"[이전 대화 이력]\n{history}\n"
 
     # 최종 응답을 생성하기 위한 프롬프트
     if context:
-        prompt = response_prompt_with_context.format(query=query, context=context)
+        prompt = response_prompt_with_context.format(
+            query=query,
+            context=context,
+            history=history)
     else:
-        prompt = response_prompt_without_context.format(query=query)
+        prompt = response_prompt_without_context.format(
+            query=query,
+            history=history)
     response = llm.invoke(prompt)
 
     return {
