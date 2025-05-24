@@ -1,11 +1,11 @@
 # nodes.py
 from app.tools import search, places
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage
 from app.agent.state import AgentState
 from langchain.prompts import ChatPromptTemplate
 from app.agent.model import llm
 from app.agent.conditional_edge import conditional_from_search_prompt, conditional_from_search_parser
-from app.functions import load_template_from_yaml, get_last_user_query
+from app.functions import load_template_from_yaml, get_last_user_query, get_filtered_history
 
 response_template_with_context = load_template_from_yaml("prompt/respond_with_context.yaml")
 response_template_without_context = load_template_from_yaml("prompt/respond_without_context.yaml")
@@ -19,9 +19,8 @@ refine_search_query_prompt = ChatPromptTemplate.from_template(template=refine_se
 
 ### SerpAPI를 위한 검색어 전처리 노드
 def search_query_refiner_node(state):
-    messages = state["messages"]
     query = get_last_user_query(state["messages"])
-    history = "\n".join(m.content for m in messages[:-1])
+    history = get_filtered_history(state["messages"], exclude_query=query)
 
     prompt = refine_search_query_prompt.format(
         query=query,
@@ -52,9 +51,7 @@ def search_node(state):
 def place_query_refiner_node(state):
     query = get_last_user_query(state["messages"])
     search_result = state.get("search_result", "")      # search 경로가 아닐 경우 빈 문자열
-
-    messages = state["messages"]
-    history = "\n".join(m.content for m in messages[:-1])
+    history = get_filtered_history(state["messages"], exclude_query=query)
 
     prompt = refine_place_query_prompt.format(
         query=query,
@@ -85,9 +82,7 @@ def response_node(state: AgentState):
     places_result = state.get("places_result", "")
     
     query = get_last_user_query(state["messages"])
-    # 대화 이력
-    messages = state["messages"]
-    history = "\n".join(m.content for m in messages[:-1])
+    history = get_filtered_history(state["messages"], exclude_query=query)
 
     # context 구성: 정보 + 맥락 포함
     context = ""
@@ -119,14 +114,11 @@ def response_node(state: AgentState):
 ### conditional_function 정의
 # LLM을 사용하여 사용자 쿼리의 의도를 분류한 후 검색 후 장소를 검색할지 말지 결정
 def conditional_function_from_search_result(state):
-    messages = state["messages"]
     search_result = state.get("search_result", "")
-
     # 가장 최신 사용자 질문만 추출
-    query = get_last_user_query(messages)
-
+    query = get_last_user_query((state["messages"]))
     # 가장 마지막 메시지 제외한 대화 이력
-    history = "\n".join(m.content for m in messages[:-1])
+    history = get_filtered_history(state["messages"], exclude_query=query)
 
     # formated prompt 생성 및 LLM 호출
     prompt = conditional_from_search_prompt.format(
