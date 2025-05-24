@@ -19,11 +19,9 @@ refine_search_query_prompt = ChatPromptTemplate.from_template(template=refine_se
 
 ### SerpAPI를 위한 검색어 전처리 노드
 def search_query_refiner_node(state):
+    messages = state["messages"]
     query = get_last_user_query(state["messages"])
-    history = "\n".join(
-        m.content for m in state["messages"]
-        if isinstance(m, HumanMessage) and m.content != query
-    )
+    history = "\n".join(m.content for m in messages[:-1])
 
     prompt = refine_search_query_prompt.format(
         query=query,
@@ -54,10 +52,10 @@ def search_node(state):
 def place_query_refiner_node(state):
     query = get_last_user_query(state["messages"])
     search_result = state.get("search_result", "")      # search 경로가 아닐 경우 빈 문자열
-    history = "\n".join(
-        m.content for m in state["messages"]
-        if isinstance(m, HumanMessage) and m.content != query
-    )
+
+    messages = state["messages"]
+    history = "\n".join(m.content for m in messages[:-1])
+
     prompt = refine_place_query_prompt.format(
         query=query,
         history=history,
@@ -88,10 +86,8 @@ def response_node(state: AgentState):
     
     query = get_last_user_query(state["messages"])
     # 대화 이력
-    history = "\n".join(
-        m.content for m in state["messages"]
-        if isinstance(m, HumanMessage) and m.content != query
-    )
+    messages = state["messages"]
+    history = "\n".join(m.content for m in messages[:-1])
 
     # context 구성: 정보 + 맥락 포함
     context = ""
