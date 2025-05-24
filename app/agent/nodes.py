@@ -45,7 +45,11 @@ def search_node(state):
 ### Google Places API를 위한 검색어 전처리 노드
 def place_query_refiner_node(state):
     original_query = state["messages"][-1].content
-    prompt = refine_place_query_prompt.format(query=original_query)
+    search_result = state.get("search_result", "")      # search 경로가 아닐 경우 빈 문자열
+    prompt = refine_place_query_prompt.format(
+        query=original_query,
+        search_result=search_result
+        )
     refined_query = llm.invoke(prompt).content.strip()
 
     return {
@@ -87,13 +91,17 @@ def response_node(state: AgentState):
 ### conditional_function 정의
 # LLM을 사용하여 사용자 쿼리의 의도를 분류한 후 검색 후 장소를 검색할지 말지 결정
 def conditional_function_from_search_result(state):
-    # 사용자 쿼리
+    messages = state["messages"]
     query = state["messages"][-1].content
     search_result = state.get("search_result", "")
+
+    # 가장 마지막 메시지 제외한 대화 이력
+    history = "\n".join(m.content for m in messages[:-1])
 
     # formated prompt 생성 및 LLM 호출
     prompt = conditional_from_search_prompt.format(
         query=query,
+        history = history,
         search_result=search_result,
         format_instructions = conditional_from_search_parser.get_format_instructions()
     )
