@@ -44,7 +44,7 @@ def search_node(state):
 
 ### Google Places API를 위한 검색어 전처리 노드
 def place_query_refiner_node(state):
-    original_query = state["messages"][-1].content
+    original_query = get_last_user_query(state["messages"])
     search_result = state.get("search_result", "")      # search 경로가 아닐 경우 빈 문자열
     prompt = refine_place_query_prompt.format(
         query=original_query,
@@ -92,8 +92,10 @@ def response_node(state: AgentState):
 # LLM을 사용하여 사용자 쿼리의 의도를 분류한 후 검색 후 장소를 검색할지 말지 결정
 def conditional_function_from_search_result(state):
     messages = state["messages"]
-    query = state["messages"][-1].content
     search_result = state.get("search_result", "")
+
+    # 가장 최신 사용자 질문만 추출
+    query = get_last_user_query(messages)
 
     # 가장 마지막 메시지 제외한 대화 이력
     history = "\n".join(m.content for m in messages[:-1])
