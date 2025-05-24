@@ -19,8 +19,16 @@ refine_search_query_prompt = ChatPromptTemplate.from_template(template=refine_se
 
 ### SerpAPI를 위한 검색어 전처리 노드
 def search_query_refiner_node(state):
-    original_query = state["messages"][-1].content
-    prompt = refine_search_query_prompt.format(query=original_query)
+    query = get_last_user_query(state["messages"])
+    history = "\n".join(
+        m.content for m in state["messages"]
+        if isinstance(m, HumanMessage) and m.content != query
+    )
+
+    prompt = refine_search_query_prompt.format(
+        query=query,
+        history=history
+    )
     refined_query = llm.invoke(prompt).content.strip()
 
     return {
@@ -44,10 +52,15 @@ def search_node(state):
 
 ### Google Places API를 위한 검색어 전처리 노드
 def place_query_refiner_node(state):
-    original_query = get_last_user_query(state["messages"])
+    query = get_last_user_query(state["messages"])
     search_result = state.get("search_result", "")      # search 경로가 아닐 경우 빈 문자열
+    history = "\n".join(
+        m.content for m in state["messages"]
+        if isinstance(m, HumanMessage) and m.content != query
+    )
     prompt = refine_place_query_prompt.format(
-        query=original_query,
+        query=query,
+        history=history,
         search_result=search_result
         )
     refined_query = llm.invoke(prompt).content.strip()
