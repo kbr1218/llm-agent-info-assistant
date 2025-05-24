@@ -99,8 +99,6 @@ def response_node(state: AgentState):
         context += f"[주소 검색 결과]\n{places_result}\n"
     if search_result:
         context += f"[검색 결과 요약]\n{search_result}\n"
-    if history:
-        context += f"[이전 대화 이력]\n{history}\n"
 
     # 최종 응답을 생성하기 위한 프롬프트
     if context:
