@@ -29,7 +29,7 @@ def search_query_refiner_node(state):
     refined_query = llm.invoke(prompt).content.strip()
 
     return {
-        "messages": [AIMessage(content=f"[검색용 보정 쿼리]\n{refined_query}")],
+        # "messages": [AIMessage(content=f"[검색용 보정 쿼리]\n{refined_query}")],
         "refined_place_query": refined_query
     }
 
@@ -43,7 +43,7 @@ def search_node(state):
     return {
         # 멀티턴 대화를 위한 응답 저장
         # tools에서 나온 결과값은 에이전트의 최종 응답에 그대로 출력되면 안 되지만, 그래프의 내부 추론 흐름을 위한 context tracking 용도로 저장함
-        "messages": [AIMessage(content=result)],
+        # "messages": [AIMessage(content=result)],
         "search_result": result
     }
 
@@ -61,7 +61,7 @@ def place_query_refiner_node(state):
     refined_query = llm.invoke(prompt).content.strip()
 
     return {
-        "messages": [AIMessage(content=f"[장소 검색용 보정 쿼리]\n{refined_query}")],
+        # "messages": [AIMessage(content=f"[장소 검색용 보정 쿼리]\n{refined_query}")],
         "refined_place_query": refined_query
     }
 
@@ -70,7 +70,7 @@ def places_node(state):
     query = state.get("refined_place_query", state["messages"][-1].content)
     result = places.run(query)
     return {
-        "messages": [AIMessage(content=result)],
+        # "messages": [AIMessage(content=result)],
         "places_result": result
     }
 
