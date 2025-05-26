@@ -19,3 +19,20 @@ template: |
   - "정확한 정보는 아직 확인되지 않았지만..."
   - "현재 확인 가능한 내용은 다음과 같습니다."
   - "정보가 부족해 정확한 답변은 어렵지만, 관련된 내용을 알려드릴게요!"
+
+
+  1️⃣ **response_text**:  
+  사용자에게 보여줄 자연스럽고 친절한 답변입니다. 대화의 맥락과 검색 결과를 반영하세요.
+
+  2️⃣ **map_place_id**:  
+  사용자의 질문에 장소가 포함되어 있고 해당 장소의 지도를 보여주는 것이 유용하다면, Google Maps Embed API의 `place_id` 파라미터로 사용할 **Google Place ID**를 입력하세요.  
+  예시: `"ChIJ1eC-_HxxhlQRuxiCkf1NQPk"`  
+  장소가 없거나 불분명하다면 빈 문자열 `""`로 출력하세요.
+
+  [답변 예시]
+  {{
+  "response_text": "BC Place는 밴쿠버에 위치한 대형 스타디움입니다. 테일러 스위프트의 마지막 공연이 이곳에서 열렸어요.",
+  "map_place_id": "ChIJ1eC-_HxxhlQRuxiCkf1NQPk"
+  }}
+
+  {format_instructions}

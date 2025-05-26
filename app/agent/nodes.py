@@ -6,6 +6,7 @@ from langchain.prompts import ChatPromptTemplate
 from app.agent.model import llm
 from app.agent.conditional_edge import conditional_from_search_prompt, conditional_from_search_parser
 from app.functions import load_template_from_yaml, get_last_user_query, get_filtered_history
+from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 
 response_template_with_context = load_template_from_yaml("prompt/respond_with_context.yaml")
 response_template_without_context = load_template_from_yaml("prompt/respond_without_context.yaml")
@@ -91,20 +92,35 @@ def response_node(state: AgentState):
     if search_result:
         context += f"[검색 결과 요약]\n{search_result}\n"
 
+    # embed maps를 위한 structured output schema 정의
+    response_schema = [
+        ResponseSchema(name="response_text", description="사용자에게 보여줄 자연스러운 답변입니다."),
+        ResponseSchema(name="map_place_id", description="Google Maps에 표시할 Google Place ID입니다. 표시할 게 없다면 빈 문자열로 출력하세요.")
+    ]
+    parser = StructuredOutputParser.from_response_schemas(response_schema)
+
     # 최종 응답을 생성하기 위한 프롬프트
     if context:
         prompt = response_prompt_with_context.format(
             query=query,
             context=context,
-            history=history)
+            history=history,
+            format_instructions = parser.get_format_instructions()
+        )
     else:
         prompt = response_prompt_without_context.format(
             query=query,
-            history=history)
-    response = llm.invoke(prompt)
+            history=history
+        )
+    raw_response = llm.invoke(prompt)
+    parsed = parser.parse(raw_response.content)
+
+    print("🔎 raw LLM response:", raw_response.content)
+    print("✅ parsed result:", parsed)
 
     return {
-        "messages": [AIMessage(content=response.content)]
+        "messages": [AIMessage(content=parsed["response_text"])],
+        "map_place_id": parsed["map_place_id"] if parsed["map_place_id"] else None
     }
 
 # INFO: user_input_node를 정의하지 않은 이유?
