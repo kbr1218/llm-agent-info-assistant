@@ -22,7 +22,7 @@ def search(query: str):
 @tool
 def places(query: str):
     """Google Places API를 사용하여 장소 주소를 검색합니다. 공연장 주소나 특정 장소 정보를 찾을 때 사용됩니다."""
-    formatted_query = query.replace("address", "").strip()
+    formatted_query = query
     return GooglePlacesTool().run(formatted_query)
 
 def get_tools():
