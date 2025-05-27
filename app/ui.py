@@ -79,19 +79,23 @@ def run_app():
     with col2:
         st.subheader("🗺️ 지도 보기")
 
+        # 사용자 입력이 있고 output에 place_id가 존재하면 해당 장소를 표시
         if user_input and "output" in locals() and output.get("map_place_id"):
-            embed_url = (
-                f"https://www.google.com/maps/embed/v1/place"
-                f"?key={GPLACES_API_KEY}"
-                f"&q=place_id:{output['map_place_id']}"
-                f"&zoom=15"
-                f"&language=ko"
-            )
-
-            st.components.v1.html(
-                f"""<iframe width="100%" height="500" frameborder="0" style="border:0"
-                referrerpolicy="no-referrer-when-downgrade" src="{embed_url}" allowfullscreen></iframe>""",
-                height=500
-            )
+            place_id = output["map_place_id"]
         else:
-            st.markdown("현재 표시할 장소가 없습니다.")
+            # 기본 장소 설정 (서울 시청 또는 원하는 기본 장소)
+            place_id = "ChIJx5bZZM-3fDUR64Pq5LTtioU"  # fallback location
+
+        embed_url = (
+            f"https://www.google.com/maps/embed/v1/place"
+            f"?key={GPLACES_API_KEY}"
+            f"&q=place_id:{place_id}"
+            f"&zoom=15"
+            f"&language=ko"
+        )
+
+        st.components.v1.html(
+            f"""<iframe width="100%" height="500" frameborder="0" style="border:0"
+            referrerpolicy="no-referrer-when-downgrade" src="{embed_url}" allowfullscreen></iframe>""",
+            height=500
+        )
