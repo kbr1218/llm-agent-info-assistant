@@ -79,26 +79,19 @@ def run_app():
     with col2:
         st.subheader("🗺️ 지도 보기")
 
-        if user_input:
-            st.text("✅ user_input 있음")
+        if user_input and "output" in locals() and output.get("map_place_id"):
+            embed_url = (
+                f"https://www.google.com/maps/embed/v1/place"
+                f"?key={GPLACES_API_KEY}"
+                f"&q=place_id:{output['map_place_id']}"
+                f"&zoom=15"
+                f"&language=ko"
+            )
 
-            st.write("🔎 raw LLM response:", output)
-
-            if "map_place_id" in output:
-                st.text("✅ map_place_id 키 존재")
-            if output.get("embed_location"):
-                st.text("✅ embed_location 값 존재")
-
-            if "map_place_id" in output and output["map_place_id"]:
-                embed_url = f"https://www.google.com/maps/embed/v1/place?key={GPLACES_API_KEY}&place_id={output['map_place_id']}"
-
-                st.text("🔍 Google Maps Embed URL:")
-                st.code(embed_url)
-
-                st.components.v1.html(
-                    f"""<iframe width="100%" height="300" frameborder="0" style="border:0"
-                    referrerpolicy="no-referrer-when-downgrade" src="{embed_url}" allowfullscreen></iframe>""",
-                    height=310
-                )
-            else:
-                st.markdown("현재 표시할 장소가 없습니다.")
+            st.components.v1.html(
+                f"""<iframe width="100%" height="500" frameborder="0" style="border:0"
+                referrerpolicy="no-referrer-when-downgrade" src="{embed_url}" allowfullscreen></iframe>""",
+                height=500
+            )
+        else:
+            st.markdown("현재 표시할 장소가 없습니다.")
