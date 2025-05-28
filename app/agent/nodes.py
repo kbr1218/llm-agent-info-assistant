@@ -3,11 +3,11 @@ from app.tools import search, places
 from langchain_core.messages import AIMessage
 from app.agent.state import AgentState
 from langchain.prompts import ChatPromptTemplate
+from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 from app.agent.model import llm
 from app.agent.conditional_edge import conditional_from_search_prompt, conditional_from_search_parser
 from app.functions import load_template_from_yaml, get_last_user_query, get_filtered_history
-from langchain.output_parsers import PydanticOutputParser
-from pydantic import BaseModel, Field
+
 
 response_template_with_context = load_template_from_yaml("prompt/respond_with_context.yaml")
 response_template_without_context = load_template_from_yaml("prompt/respond_without_context.yaml")
@@ -18,11 +18,6 @@ response_prompt_with_context = ChatPromptTemplate.from_template(template=respons
 response_prompt_without_context = ChatPromptTemplate.from_template(template=response_template_without_context)
 refine_place_query_prompt = ChatPromptTemplate.from_template(template=refine_place_query_template)
 refine_search_query_prompt = ChatPromptTemplate.from_template(template=refine_search_query_template)
-
-class ResponseModel(BaseModel):
-    response_text: str = Field(..., description="사용자에게 보여줄 자연스러운 답변입니다.")
-    map_place_id: str = Field(..., description="Google Maps에 표시할 Google Place ID입니다. 없으면 빈 문자열로 출력합니다.")
-    requery: bool = Field(..., description="검색 결과가 부족하다고 판단되면 true, 아니면 false")
 
 ### SerpAPI를 위한 검색어 전처리 노드
 def search_query_refiner_node(state: AgentState) -> AgentState:
@@ -107,8 +102,13 @@ def response_node(state: AgentState):
     if search_result:
         context += f"[검색 결과 요약]\n{search_result}\n"
 
-    # # embed maps를 위한 structured output schema 정의
-    parser = PydanticOutputParser(pydantic_object=ResponseModel)
+    # embed maps를 위한 structured output schema 정의
+    response_schema = [
+        ResponseSchema(name="response_text", description="사용자에게 보여줄 자연스러운 답변입니다."),
+        ResponseSchema(name="map_place_id", description="Google Maps에 표시할 Google Place ID입니다. 표시할 게 없다면 빈 문자열로 출력하세요."),
+        ResponseSchema(name="requery", description="검색 결과가 부족하다고 판단되면 true, 아니면 false")
+    ]
+    parser = StructuredOutputParser.from_response_schemas(response_schema)
 
     # 최종 응답을 생성하기 위한 프롬프트
     if context:
@@ -131,7 +131,7 @@ def response_node(state: AgentState):
 
     # retry_count 조건부 증가
     retry_count = state.get("retry_count", 0)
-    requery = parsed.requery
+    requery = parsed["requery"]
 
     if requery:
         retry_count += 1
@@ -141,8 +141,8 @@ def response_node(state: AgentState):
         requery = False
 
     return {
-        "messages": [AIMessage(content=parsed.response_text)],
-        "map_place_id": parsed.map_place_id if parsed.map_place_id else None,
+        "messages": [AIMessage(content=parsed["response_text"])],
+        "map_place_id": parsed["map_place_id"] if parsed["map_place_id"] else None,
         "retry_count": retry_count,
         "requery": requery
     }
