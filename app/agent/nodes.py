@@ -60,7 +60,6 @@ def search_node(state):
     return {
         # 멀티턴 대화를 위한 응답 저장
         # tools에서 나온 결과값은 에이전트의 최종 응답에 그대로 출력되면 안 되지만, 그래프의 내부 추론 흐름을 위한 context tracking 용도로 저장함
-        # "messages": [AIMessage(content=result)],
         "search_result": result
     }
 
@@ -109,12 +108,6 @@ def response_node(state: AgentState):
         context += f"[검색 결과 요약]\n{search_result}\n"
 
     # # embed maps를 위한 structured output schema 정의
-    # response_schema = [
-    #     ResponseSchema(name="response_text", description="사용자에게 보여줄 자연스러운 답변입니다."),
-    #     ResponseSchema(name="map_place_id", description="Google Maps에 표시할 Google Place ID입니다. 표시할 게 없다면 빈 문자열로 출력하세요."),
-    #     ResponseSchema(name="requery", description="검색 결과가 부족하다고 판단되면 true, 아니면 false를 반환하세요. 이 값에 따라 검색어를 재조정할 수 있습니다.")
-    # ]
-    # parser = StructuredOutputParser.from_response_schemas(response_schema)
     parser = PydanticOutputParser(pydantic_object=ResponseModel)
 
     # 최종 응답을 생성하기 위한 프롬프트

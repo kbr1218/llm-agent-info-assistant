@@ -19,7 +19,7 @@ def run_app():
 
     # 페이지 레이아웃 설정
     st.title("LangGraph 기반 정보 탐색 & 장소 조회 에이전트🐱‍🏍")
-    st.caption("🔗 Github repo (still working on it,,): https://github.com/kbr1218/llm-agent-info-assistant")
+    st.caption("🔗 Github repo: https://github.com/kbr1218/llm-agent-info-assistant")
     st.divider()
     # st.balloons()
 
