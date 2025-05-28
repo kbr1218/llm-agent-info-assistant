@@ -1,7 +1,7 @@
 # graph.py
 from langgraph.graph import StateGraph, END
 from app.agent.state import AgentState
-from app.agent.nodes import search_node, places_node, response_node, conditional_function_from_search_result, place_query_refiner_node, search_query_refiner_node
+from app.agent.nodes import search_node, places_node, response_node, conditional_function_from_search_result, place_query_refiner_node, search_query_refiner_node, requery_router
 from app.agent.router import route_based_on_keyword
 
 ### 그래프 정의
@@ -47,13 +47,19 @@ graph.add_conditional_edges(
     }
 )
 
+graph.add_conditional_edges(
+    "respond",
+    requery_router,
+    path_map={
+        "search_query_refiner": "search_query_refiner",
+        "end": END
+    }
+)
+
 ### 후속 처리
 graph.add_edge("search_query_refiner", "search")
 graph.add_edge("place_query_refiner", "places")
 graph.add_edge("places", "respond")
-
-### 끝지점 설정: 그래프 흐름의 종료를 나타냄
-graph.add_edge("respond", END)
 
 ### 컴파일된 agent 반환
 agent_excutor = graph.compile()

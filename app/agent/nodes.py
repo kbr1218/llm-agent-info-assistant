@@ -6,7 +6,8 @@ from langchain.prompts import ChatPromptTemplate
 from app.agent.model import llm
 from app.agent.conditional_edge import conditional_from_search_prompt, conditional_from_search_parser
 from app.functions import load_template_from_yaml, get_last_user_query, get_filtered_history
-from langchain.output_parsers import StructuredOutputParser, ResponseSchema
+from langchain.output_parsers import PydanticOutputParser
+from pydantic import BaseModel, Field
 
 response_template_with_context = load_template_from_yaml("prompt/respond_with_context.yaml")
 response_template_without_context = load_template_from_yaml("prompt/respond_without_context.yaml")
@@ -18,20 +19,35 @@ response_prompt_without_context = ChatPromptTemplate.from_template(template=resp
 refine_place_query_prompt = ChatPromptTemplate.from_template(template=refine_place_query_template)
 refine_search_query_prompt = ChatPromptTemplate.from_template(template=refine_search_query_template)
 
+class ResponseModel(BaseModel):
+    response_text: str = Field(..., description="사용자에게 보여줄 자연스러운 답변입니다.")
+    map_place_id: str = Field(..., description="Google Maps에 표시할 Google Place ID입니다. 없으면 빈 문자열로 출력합니다.")
+    requery: bool = Field(..., description="검색 결과가 부족하다고 판단되면 true, 아니면 false")
+
 ### SerpAPI를 위한 검색어 전처리 노드
-def search_query_refiner_node(state):
+def search_query_refiner_node(state: AgentState) -> AgentState:
     query = get_last_user_query(state["messages"])
     history = get_filtered_history(state["messages"], exclude_query=query)
+    retry_count = state.get("retry_count", 0)
+    search_query = state.get("search_query", "")
 
     prompt = refine_search_query_prompt.format(
         query=query,
-        history=history
+        history=history,
+        retry_count = retry_count,
+        search_query = search_query
     )
     refined_query = llm.invoke(prompt).content.strip()
 
+    # 누적된 search_query 이력 갱신
+    updated_search_query = (
+        f"{search_query}, {refined_query}" if search_query else refined_query
+    )
+
     return {
-        # "messages": [AIMessage(content=f"[검색용 보정 쿼리]\n{refined_query}")],
-        "refined_place_query": refined_query
+        **state,
+        "search_query": updated_search_query,
+        "retry_count": retry_count     # 그대로 유지하고 response_node에서 ++
     }
 
 ### 검색 노드 함수 정의
@@ -92,12 +108,14 @@ def response_node(state: AgentState):
     if search_result:
         context += f"[검색 결과 요약]\n{search_result}\n"
 
-    # embed maps를 위한 structured output schema 정의
-    response_schema = [
-        ResponseSchema(name="response_text", description="사용자에게 보여줄 자연스러운 답변입니다."),
-        ResponseSchema(name="map_place_id", description="Google Maps에 표시할 Google Place ID입니다. 표시할 게 없다면 빈 문자열로 출력하세요.")
-    ]
-    parser = StructuredOutputParser.from_response_schemas(response_schema)
+    # # embed maps를 위한 structured output schema 정의
+    # response_schema = [
+    #     ResponseSchema(name="response_text", description="사용자에게 보여줄 자연스러운 답변입니다."),
+    #     ResponseSchema(name="map_place_id", description="Google Maps에 표시할 Google Place ID입니다. 표시할 게 없다면 빈 문자열로 출력하세요."),
+    #     ResponseSchema(name="requery", description="검색 결과가 부족하다고 판단되면 true, 아니면 false를 반환하세요. 이 값에 따라 검색어를 재조정할 수 있습니다.")
+    # ]
+    # parser = StructuredOutputParser.from_response_schemas(response_schema)
+    parser = PydanticOutputParser(pydantic_object=ResponseModel)
 
     # 최종 응답을 생성하기 위한 프롬프트
     if context:
@@ -118,9 +136,22 @@ def response_node(state: AgentState):
     print("🔎 raw LLM response:", raw_response.content)
     print("✅ parsed result:", parsed)
 
+    # retry_count 조건부 증가
+    retry_count = state.get("retry_count", 0)
+    requery = parsed.requery
+
+    if requery:
+        retry_count += 1
+
+    # 최대 3회까지만 재검색 허용
+    if retry_count > 3:
+        requery = False
+
     return {
-        "messages": [AIMessage(content=parsed["response_text"])],
-        "map_place_id": parsed["map_place_id"] if parsed["map_place_id"] else None
+        "messages": [AIMessage(content=parsed.response_text)],
+        "map_place_id": parsed.map_place_id if parsed.map_place_id else None,
+        "retry_count": retry_count,
+        "requery": requery
     }
 
 # INFO: user_input_node를 정의하지 않은 이유?
@@ -146,3 +177,14 @@ def conditional_function_from_search_result(state):
     response  = llm.invoke(prompt)
     parsed = conditional_from_search_parser.parse(response.content)
     return parsed["route"]
+
+# 재검색을 위한 조건부 함수 정의
+def requery_router(state: AgentState) -> str:
+    retry_count = state.get("retry_count", 0)
+    requery = state.get("requery", False)
+
+    if retry_count > 3:
+        return "end"
+    if requery:
+        return "search_query_refiner"
+    return "end"

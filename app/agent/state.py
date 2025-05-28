@@ -9,4 +9,6 @@ class AgentState(TypedDict):
     # Optional: 각각의 state는 문자열일 수도 있고, 없을 수도(None) 있다는 의미
     search_result: Optional[str]
     places_result: Optional[str]
-    map_place_id: Optional[str] = None
+    map_place_id: Optional[str]
+    search_query: Optional[str]
+    retry_count: int   # 초기값 0
