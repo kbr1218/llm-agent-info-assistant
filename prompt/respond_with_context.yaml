@@ -32,8 +32,8 @@ template: |
   장소가 없거나 불분명하다면 빈 문자열 `""`로 출력하세요.
 
   3️⃣ **requery**:  
-  참고 정보가 부족하거나 정확한 답변을 제공하기 어렵다고 판단되면 **반드시** `True`로 설정하세요.  
-  충분한 정보가 있고 답변이 적절하면 `False`로 설정하세요.
+  참고 정보가 부족하거나 정확한 답변을 제공하기 어렵다고 판단되면 **반드시** `true`로 설정하세요.  
+  충분한 정보가 있고 답변이 적절하면 `false`로 설정하세요.
 
   ⚠️ 세 필드는 모두 포함되어야 하며, JSON 객체로만 출력하세요.
 
@@ -41,7 +41,7 @@ template: |
   {{
   "response_text": "BC Place는 밴쿠버에 위치한 대형 스타디움입니다. 테일러 스위프트의 마지막 공연이 이곳에서 열렸어요.",
   "map_place_id": "ChIJ1eC-_HxxhlQRuxiCkf1NQPk",
-  "requery": False
+  "requery": false
   }}
 
   {format_instructions}
