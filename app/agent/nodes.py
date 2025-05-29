@@ -121,7 +121,8 @@ def response_node(state: AgentState):
     else:
         prompt = response_prompt_without_context.format(
             query=query,
-            history=history
+            history=history,
+            format_instructions=parser.get_format_instructions()
         )
     raw_response = llm.invoke(prompt)
     parsed = parser.parse(raw_response.content)
