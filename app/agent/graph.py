@@ -11,12 +11,12 @@ from app.agent.router import route_based_on_keyword
 graph = StateGraph(AgentState)
 
 ### 노드 추가
+graph.add_node("router", lambda state: {})  # 최소 형태의 "더미 노드"
+graph.add_node("search_query_refiner", search_query_refiner_node)
 graph.add_node("search", search_node)
+graph.add_node("place_query_refiner", place_query_refiner_node)
 graph.add_node("places", places_node)
 graph.add_node("respond", response_node)
-graph.add_node("place_query_refiner", place_query_refiner_node)
-graph.add_node("search_query_refiner", search_query_refiner_node)
-graph.add_node("router", lambda state: {})  # 최소 형태의 "더미 노드"
 
 ### 진입점 설정
 # 그래프가 실행될 때마다 작업을 시작할 위치
@@ -24,6 +24,11 @@ graph.add_node("router", lambda state: {})  # 최소 형태의 "더미 노드"
 # set_entry_point: 그래프 실행 시 가장 먼저 실행할 노드 지정, 실제 실행됨 => 단일 노드만 가능 (일반적인 에이전트 시작 시 사용)
 # START: 그래프 상의 가상 시작 노드 (실제 실행은 X), 일반적으로 내부 경유 지점 또는 분기 포인트로 사용됨 => 여러 노드로 분기 가능 (복잡한 흐름 시 사용)
 graph.set_entry_point("router")
+
+### 후속 처리
+graph.add_edge("search_query_refiner", "search")
+graph.add_edge("place_query_refiner", "places")
+graph.add_edge("places", "respond")
 
 ### 조건부 엣지 설정
 graph.add_conditional_edges(
@@ -55,11 +60,6 @@ graph.add_conditional_edges(
         "end": END
     }
 )
-
-### 후속 처리
-graph.add_edge("search_query_refiner", "search")
-graph.add_edge("place_query_refiner", "places")
-graph.add_edge("places", "respond")
 
 ### 컴파일된 agent 반환
 agent_excutor = graph.compile()
