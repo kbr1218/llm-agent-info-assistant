@@ -72,16 +72,16 @@ def place_query_refiner_node(state):
     refined_query = llm.invoke(prompt).content.strip()
 
     return {
-        # "messages": [AIMessage(content=f"[장소 검색용 보정 쿼리]\n{refined_query}")],
         "refined_place_query": refined_query
     }
 
 ### places 노드 함수 정의
 def places_node(state):
-    query = state.get("refined_place_query", state["messages"][-1].content)
+    query = state.get("refined_place_query")
+    if not query:
+        raise ValueError("refined_place_query가 없습니다.")
     result = places.run(query)
     return {
-        # "messages": [AIMessage(content=result)],
         "places_result": result
     }
 

@@ -11,4 +11,5 @@ class AgentState(TypedDict):
     places_result: Optional[str]
     map_place_id: Optional[str]
     search_query: Optional[str]
+    refined_place_query: Optional[str]
     retry_count: int   # 초기값 0
